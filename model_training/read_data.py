@@ -85,7 +85,6 @@ def get_ids_list_and_labels_dict():
     return list_ids, dict_labels
 
 
-# TODO: continue
 def get_data_partitions(list_ids):
     # Setup data generators
     train_test_ratio = 0.9
