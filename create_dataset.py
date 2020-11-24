@@ -7,15 +7,15 @@ tiles = parse_sentinel2_tiles_metadata()
 print(tiles)
 print(f'len(tiles) = {len(tiles)}')
 
-for tile in tiles:
-    print(f'--------------TILE: {tile.id}')
-    for safe in tile.safes:
-        print(f'safe.corners: {safe.corners}')
-        print(f'safe.s2_path: {safe.s2_path}')
-        print(f'safe.date: {safe.date}')
-        print(f'safe.time: {safe.time}')
-        print(f'safe.epsg: {safe.epsg}')
-        print(f'safe.tidal_elevation: {safe.tidal_elevation}')
+# for tile in tiles:
+#     print(f'--------------TILE: {tile.id}')
+#     for safe in tile.safes:
+#         print(f'safe.corners: {safe.corners}')
+#         print(f'safe.s2_path: {safe.s2_path}')
+#         print(f'safe.date: {safe.date}')
+#         print(f'safe.time: {safe.time}')
+#         print(f'safe.epsg: {safe.epsg}')
+#         print(f'safe.tidal_elevation: {safe.tidal_elevation}')
 
 # get bathymetry xyz
 bathy_xyz = get_bathy_xyz(tiles)

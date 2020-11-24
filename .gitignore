@@ -1,8 +1,12 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-outs/
 *.py[cod]
 *$py.class
+
+# Custom
+outs/
+data_generation/config.py
+temporary/
 
 # C extensions
 *.so

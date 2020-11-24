@@ -96,10 +96,13 @@ def parse_sentinel2_tiles_metadata():
     for tile in cfg.tiles:
         temp_tile = Sentinel2Tile()
         temp_tile.id = tile
+
+        print(f'--------------TILE: {temp_tile.id}')
+
         n = 0
         i += 1  # tile index
-        if cfg.verbose >= 0:
-            print(f'{tile}')
+        # if cfg.verbose >= 0:
+        #     print(f'{tile}')
         path_t = os.path.join(cfg.in_path_s2, tile)
         safes = os.listdir(path_t)
         temp = []
@@ -121,11 +124,18 @@ def parse_sentinel2_tiles_metadata():
                     temp_safe.time = time
                     temp_safe.s2_path = path_s
                     x, y, epsg = get_top_left_corner_coordinates_for_image(path_s)
-                    print(x, y, epsg, path_s)
+                    # print(x, y, epsg, path_s)
                     temp_safe.corners = (x, y)
 
                     temp_safe.epsg = epsg
                     temp_tile.safes.append(temp_safe)
+
+                    print(f'safe.corners: {temp_safe.corners}')
+                    print(f'safe.s2_path: {temp_safe.s2_path}')
+                    print(f'safe.date: {temp_safe.date}')
+                    print(f'safe.time: {temp_safe.time}')
+                    print(f'safe.epsg: {temp_safe.epsg}')
+                    print(f'safe.tidal_elevation: {temp_safe.tidal_elevation}')
 
                     if epsg not in temp_tile.epsgs:
                         temp_tile.epsgs.append(epsg)

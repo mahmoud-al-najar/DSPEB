@@ -108,7 +108,11 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
                                     #     axes[1][band].imshow(B_fft[:, :, band])
                                     #     axes[1][band].set_title(f'Band index: {band + 1}')
 
+
+
+                                    # B_fnxc = B_fft
                                     B_fnxc = apply_per_band_min_max_normalization(B_fft)
+
                                     # for band in range(4):
                                     #     axes[2][band].imshow(B_fnxc[:, :, band])
                                     #     axes[2][band].set_title(f'Band index: {band + 1}')
@@ -119,6 +123,12 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
                                     # plt.tight_layout()
                                     # plt.show()
 
+                                    if np.min(B_fft) < 0:
+                                        fig, axes = plt.subplots(1, 4, figsize=(10, 10))
+                                        for band in range(4):
+                                            axes[band].imshow(B_fft[:, :, band])
+                                            axes[band].set_title(f'Band index: {band}')
+                                        plt.show()
                                     good += 1
                                     num = '{0:05}'.format(good)
 
@@ -137,22 +147,6 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
                                             len(dataframe.index)) + '_TEMP.tar.gz'
                                         make_tarfile(tmp_tarname, tmp_dirname)
                                         shutil.copy(tmp_tarname, cfg.out_path_dataset)
-                                        # src_files = os.listdir(tmp_dirname)
-                                        # for file_name in src_files:
-                                        #    full_file_name = os.path.join(tmp_dirname, file_name)
-                                        #    if os.path.isfile(full_file_name):
-                                        #        shutil.copy(full_file_name, self.dataset_path)
-                                    # if flag == 0:
-                                    #    B_fnxc = self.apply_normxcorr2(B_fft)
-                                    #    B_fnxc = self.apply_per_band_minmax_normalization(B_fnxc)
-                                    #    good += 1
-                                    #    num = '{0:05}'.format(good)
-                                    #    name = f'{self.dataset_path}{num}_{self.tiles[i]}_{self.dates[i][j]}'
-                                    #    np.save(name, B_fnxc)
-                                    #    df = pd.DataFrame([[z_tid, x[i][k], y[i][k], z[i][k], self.epsgs[i]]], index=[name], columns=['z', 'x', 'y', 'z_no_tide', 'epsg'])
-                                    #    dataframe = dataframe.append(df)
-                                    # else:
-                                    #    bad1 += 1
 
                             except ValueError:
                                 bad3 += 1
@@ -165,14 +159,8 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
     make_tarfile(tmp_tarname, tmp_dirname)
     shutil.copy(tmp_tarname, cfg.out_path_dataset)
 
-    # src_files = os.listdir(tmp_dirname)
-    # for file_name in src_files:
-    #    full_file_name = os.path.join(tmp_dirname, file_name)
-    #    if os.path.isfile(full_file_name):
-    #        shutil.copy(full_file_name, self.dataset_path)
-
     print('###################################################################################################')
     print(f'{good + bad1 + bad2 + bad3 + bad4} Input samples')
     print(f'{good} Good samples')
-    print(f'{bad1 + bad2 + bad3 + bad4} Rejcted samples, ({bad1}, {bad2}, {bad3}, {bad4})')
+    print(f'{bad1 + bad2 + bad3 + bad4} Rejected samples, ({bad1}, {bad2}, {bad3}, {bad4})')
     print(f'##################################################################################################')
