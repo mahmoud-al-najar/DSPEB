@@ -2,14 +2,15 @@ from __future__ import print_function
 from keras.layers import Dense, Conv2D
 from keras.layers import Flatten
 from keras.models import Sequential
+import model_training.config as cfg
 
 
 class SimbaNet:
 
-    def __init__(self, input_shape=(40, 40, 4), output_nodes=1):
+    def __init__(self, input_shape=cfg.input_shape, output_nodes=cfg.output_nodes):
         self.input_shape = input_shape
         self.output_nodes = output_nodes
-        self.model_name = 'SanityNet'
+        self.model_name = 'SimbaNet'
 
     def create_model(self):
         model = Sequential(name=self.model_name)
