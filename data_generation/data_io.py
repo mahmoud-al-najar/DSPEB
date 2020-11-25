@@ -85,6 +85,25 @@ def get_tidal_elevation_for_image(safe):
             return tidal
 
 
+def parse_sentinel2_imagesafe_metadata(root_path, safe_id):
+    path_s = os.path.join(root_path, safe_id)
+    date = safe_id[11:19]
+    t_time = safe_id[20:26]
+    tidal = get_tidal_elevation_for_image(safe_id)
+    if tidal:
+        temp_safe = Sentinel2Safe()
+        temp_safe.tidal_elevation = tidal
+        temp_safe.date = date
+        temp_safe.time = t_time
+        temp_safe.s2_path = path_s
+        x, y, epsg = get_top_left_corner_coordinates_for_image(path_s)
+        temp_safe.corners = (x, y)
+        temp_safe.epsg = epsg
+        return temp_safe
+    else:
+        return None
+
+
 # TODO: refactor sentinel2wrappers.py. pass path to constructors then parse all metadata from there
 def parse_sentinel2_tiles_metadata():
     """
@@ -101,8 +120,7 @@ def parse_sentinel2_tiles_metadata():
 
         n = 0
         i += 1  # tile index
-        # if cfg.verbose >= 0:
-        #     print(f'{tile}')
+
         path_t = os.path.join(cfg.in_path_s2, tile)
         safes = os.listdir(path_t)
         temp = []
@@ -111,23 +129,11 @@ def parse_sentinel2_tiles_metadata():
                 temp.append(safe)
         safes = temp
         for safe in safes:
-            temp_safe = Sentinel2Safe()
             path_s = os.path.join(path_t, safe)
             cloud_coverage = "{0:0.2f}".format(get_cloud_coverage(path_s))
             if float(cloud_coverage) < cfg.max_cc and n < cfg.nb_max_date:
-                date = safe[11:19]
-                time = safe[20:26]
-                tidal = get_tidal_elevation_for_image(safe)
-                if tidal:
-                    temp_safe.tidal_elevation = tidal
-                    temp_safe.date = date
-                    temp_safe.time = time
-                    temp_safe.s2_path = path_s
-                    x, y, epsg = get_top_left_corner_coordinates_for_image(path_s)
-                    # print(x, y, epsg, path_s)
-                    temp_safe.corners = (x, y)
-
-                    temp_safe.epsg = epsg
+                temp_safe = parse_sentinel2_imagesafe_metadata(root_path=path_t, safe_id=safe)
+                if temp_safe:
                     temp_tile.safes.append(temp_safe)
 
                     print(f'safe.corners: {temp_safe.corners}')
@@ -137,13 +143,13 @@ def parse_sentinel2_tiles_metadata():
                     print(f'safe.epsg: {temp_safe.epsg}')
                     print(f'safe.tidal_elevation: {temp_safe.tidal_elevation}')
 
-                    if epsg not in temp_tile.epsgs:
-                        temp_tile.epsgs.append(epsg)
+                    if temp_safe.epsg not in temp_tile.epsgs:
+                        temp_tile.epsgs.append(temp_safe.epsg)
                         if len(temp_tile.epsgs) > 1:
                             warnings.warn(f'==================================== Tile {temp_tile.id}: multiple epsg\'s')
                             exit()
                     if temp_tile.corner['x'] and temp_tile.corner['y']:
-                        if x != temp_tile.corner['x'] or y != temp_tile.corner['y']:
+                        if temp_safe.corners[0] != temp_tile.corner['x'] or temp_safe.corners[1] != temp_tile.corner['y']:
                             id = temp_tile.id
                             warnings.warn(
                                 f'============================================ Tile {id}: multiple corners')
@@ -151,8 +157,8 @@ def parse_sentinel2_tiles_metadata():
                         else:
                             pass  # Different snapshots of the same tile should have the exact same corners
                     else:
-                        temp_tile.corner['x'] = x
-                        temp_tile.corner['y'] = y
+                        temp_tile.corner['x'] = temp_safe.corners[0]
+                        temp_tile.corner['y'] = temp_safe.corners[1]
 
                 n += 1
         sentinel2_tiles.append(temp_tile)
