@@ -1,9 +1,9 @@
 region = 'saint_louis'
 output_dir = 'outs'
-input_csv_path = f'/media/mn/WD4TB/PEPS/data/datasets/saint_louis/{region}.csv'
+input_csv_path = f'{region}.csv'
 
 seed = 1
-input_shape = (80, 80, 4)
+input_shape = (40, 40, 4)
 output_nodes = 1
 dataset_size = None
 batch_size = 64

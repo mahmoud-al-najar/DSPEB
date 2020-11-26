@@ -54,6 +54,11 @@ class ExtractsGenerator(keras.utils.Sequence):
             else:
                 burst = np.load(ID)
 
+            if cfg.input_shape.shape[-1] == 2:
+                _temp_burst = np.empty((self.x_shape[0], self.x_shape[1], 2))
+                _temp_burst[:, :, 0] = burst[:, :, 0]
+                _temp_burst[:, :, 1] = burst[:, :, 3]
+                burst = _temp_burst
             x[i, ] = burst
             y[i] = float(self.labels[ID]) / cfg.depth_normalization
         return x, y
