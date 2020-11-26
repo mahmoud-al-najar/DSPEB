@@ -65,12 +65,14 @@ def apply_normxcorr2(sub_tile):
     return img
 
 
-def apply_fft(sub_tile, t_max=25, t_min=5):
+def apply_fft(sub_tile, t_max=25, t_min=5, energy_min_thresh=None, energy_max_thresh=None):
     """
     Compute the fft filtering of a subtile
     :param sub_tile:(np.array) the given subtile to filter
     :param t_max:(int) Max wave periode
     :param t_min:(int) Min wave periode
+    :param energy_min_thresh:(float) min energy threshold
+    :param energy_max_thresh:(float) max energy threshold
     :return: filtered_sub_tile: Subtile filtered
     """
 
@@ -98,7 +100,8 @@ def apply_fft(sub_tile, t_max=25, t_min=5):
         max_energy = np.max(np.abs(energy_r))
         if max_energy > return_max_energy:
             return_max_energy = max_energy
-        if max_energy > 3 or max_energy < 0.01:
+        if energy_max_thresh and energy_min_thresh and \
+                (max_energy > energy_max_thresh or max_energy < energy_min_thresh):
             flag = 1
         filtered_sub_tile[:, :, channel] = np.real(np.fft.ifft2(np.fft.ifftshift(energy_r)))
     return filtered_sub_tile, flag, return_max_energy

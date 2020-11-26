@@ -19,7 +19,6 @@ def get_cloud_coverage(path):
     :param path:(str) path to the .SAFE repository of the image
     :return: cloud_coverage (float)
     """
-    # xml = path + 'MTD_MSIL1C.xml'
     xml = os.path.join(path, 'MTD_MSIL1C.xml')
     tree = et.parse(xml)
     root = tree.getroot()
@@ -34,8 +33,6 @@ def get_top_left_corner_coordinates_for_image(path):
     :param path:(str) path to the .SAFE repository of the image
     :return: x_corner, y_corner, epsg (int, int, str)
     """
-
-    # xml = path + 'GRANULE/' + os.listdir(path + 'GRANULE/')[0] + '/MTD_TL.xml'
     xml = os.path.join(path, 'GRANULE', os.listdir(os.path.join(path, 'GRANULE'))[0], 'MTD_TL.xml')
     tree = et.parse(xml)
     root = tree.getroot()
@@ -76,12 +73,9 @@ def get_tidal_elevation_for_image(safe):
                               (timing_search['S2_lat'] < (tid['S2_lat'].values[0] + b)) &
                               (timing_search['S2_lat'] > (tid['S2_lat'].values[0] - b))]
             tidal = np.nanmean(a['prediction_at_ERA5_point'].values)
-            # print(f'     {date} - {time} : tidal elevation = {"{0:0.3f}".format(tidal)}m')
             return tidal
         else:
             tidal = tid['prediction_at_ERA5_point'].values[0]
-            # if cfg.verbose >= 0:
-                # print(f'     {date} - {time} : tidal elevation = {"{0:0.3f}".format(tidal)}m')
             return tidal
 
 

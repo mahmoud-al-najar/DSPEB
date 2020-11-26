@@ -1,23 +1,23 @@
 import os
+import sys
 
+in_path_bathy = f'bathy'
+in_path_s2 = 'sentinel2'
+in_path_tidal = 'S2_ERA5_metaAndEnvironmentalData.nc'
 
-# in_path_bathy = f'/media/mn/WD4TB/PEPS/data/bathy/'
-# in_path_s2 = '/media/mn/WD4TB/PEPS/data/capbreton_validation/'
-in_path_bathy = f'/media/mn/WD4TB/PEPS/saint_louis_data/pmb_bathymetry_results'
-in_path_s2 = '/media/mn/WD4TB/PEPS/saint_louis_data/sentinel2'
-in_path_tidal = '/media/mn/WD4TB/PEPS/data/S2_ERA5_metaAndEnvironmentalData.nc'
+out_path_dir = 'job_output'
 
-out_path_dir = 'outs'
+#out_path_tmpdir = os.path.join(out_path_dir, 'tmpdir')
+out_path_tmpdir = str(sys.argv[1])
 
-out_path_tmpdir = os.path.join(out_path_dir, 'tmpdir')
-# out_path_tmpdir = str(sys.argv[1])
+region = 'guyane'
+tiles = ['21NZG']
 
-region = 'saint_louis'
-tiles = ['28PCC']
-
-w_sub_tile = 80
+w_sub_tile = 40
 w_sentinel = 109_800
 
+min_energy = 0.01
+max_energy = 3
 max_cc = 5
 nb_max_date = 7
 depth_lim_min = 0

@@ -7,9 +7,7 @@ import pandas as pd
 import data_generation.config as cfg
 from data_generation.data_io import make_tarfile
 from data_generation.utils import get_blue_ratio
-from data_generation.preprocessing import apply_fft, apply_per_band_min_max_normalization
-
-import matplotlib.pyplot as plt
+from data_generation.preprocessing import apply_fft, apply_per_band_min_max_normalization, apply_normxcorr2
 
 
 def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
@@ -35,20 +33,7 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
     x, y, z = bathy_xyz
 
     for i in range(nb_tiles):
-        print(f'Tile {cfg.tiles[i]} : {len(x[i])}')
-
-    print(f'######################################################################################################')
-
-    # nb = 0
-    # for i in range(self.nb_tiles):
-    #     nb += len(self.s2_paths[i]) * len(x[i])
-    # print(f'{nb} samples to compute')
-
-    print(f'####################################### Computation ##################################################')
-
-    # if nb == 0:
-    #     print(f'Nothing to compute')
-    #     sys.exit()
+        print(f'Tile {cfg.tiles[i]}: {len(x[i])} measurement points')
 
     good = 0
     bad1 = 0  # too close to the tile border
@@ -57,15 +42,12 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
     bad4 = 0  # Clouds
     dataframe = pd.DataFrame([], columns=['z', 'x', 'y', 'epsg', 'max_energy'])
 
-    count = 1
-    # for i in range(nb_tiles):
     for tile in sentinel2tile_list:
         print(f'Tile : {tile.id}')
         for safe in tile.safes:
             nb1 = 0
             t = time.time()
             a = os.listdir(os.path.join(safe.s2_path, 'GRANULE'))
-            # path = f'{self.s2_paths[i][j]}GRANULE/{a[0]}/IMG_DATA/T{self.tiles[i]}_{self.dates[i][j]}T{self.times[i][j]}_'
             path = os.path.join(safe.s2_path, 'GRANULE', a[0], 'IMG_DATA', f'T{tile.id}_{safe.date}T{safe.time}_')
 
             for k in range(len(x[i])):
@@ -98,37 +80,13 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
                                     bad4 += 1
                                 else:
 
-                                    # fig, axes = plt.subplots(3, 4, figsize=(10, 10))
-                                    # for band in range(4):
-                                    #     axes[0][band].imshow(Bands[:, :, band])
-                                    #     axes[0][band].set_title(f'Band index: {band}')
+                                    B_fft, flag, max_energy = apply_fft(Bands,
+                                                                        energy_min_thresh=cfg.min_energy,
+                                                                        energy_max_thresh=cfg.max_energy)
 
-                                    B_fft, flag, max_energy = apply_fft(Bands)
-                                    # for band in range(4):
-                                    #     axes[1][band].imshow(B_fft[:, :, band])
-                                    #     axes[1][band].set_title(f'Band index: {band + 1}')
+                                    B_fnxc = apply_normxcorr2(B_fft)
+                                    B_fnxc = apply_per_band_min_max_normalization(B_fnxc)
 
-
-
-                                    # B_fnxc = B_fft
-                                    B_fnxc = apply_per_band_min_max_normalization(B_fft)
-
-                                    # for band in range(4):
-                                    #     axes[2][band].imshow(B_fnxc[:, :, band])
-                                    #     axes[2][band].set_title(f'Band index: {band + 1}')
-
-                                    # plt.setp(axes[0, 0], ylabel='Raw')
-                                    # plt.setp(axes[1, 0], ylabel='FFT')
-                                    # plt.setp(axes[2, 0], ylabel='MinMax')
-                                    # plt.tight_layout()
-                                    # plt.show()
-
-                                    if np.min(B_fft) < 0:
-                                        fig, axes = plt.subplots(1, 4, figsize=(10, 10))
-                                        for band in range(4):
-                                            axes[band].imshow(B_fft[:, :, band])
-                                            axes[band].set_title(f'Band index: {band}')
-                                        plt.show()
                                     good += 1
                                     num = '{0:05}'.format(good)
 

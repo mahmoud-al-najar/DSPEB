@@ -18,7 +18,6 @@ class ExtractsGenerator(keras.utils.Sequence):
         self.on_epoch_end()
         self.indices = None
         self.on_epoch_end()
-        self.shape = self.x_shape
 
     def __len__(self):
         """Denotes the number of batches per epoch"""
@@ -54,8 +53,7 @@ class ExtractsGenerator(keras.utils.Sequence):
                 burst = np.load(f'{ID}.npy')
             else:
                 burst = np.load(ID)
-            # burst = burst[:4, :, :]
-            # burst = np.rollaxis(burst, 0, 3)
+
             x[i, ] = burst
             y[i] = float(self.labels[ID]) / cfg.depth_normalization
         return x, y
