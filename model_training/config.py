@@ -17,5 +17,6 @@ beta2 = 0.999
 depth_normalization = 10
 
 min_energy = 0.5
-max_energy = 8
-max_depth = None
+max_energy = 7
+max_depth = 40
+

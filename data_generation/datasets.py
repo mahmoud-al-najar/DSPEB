@@ -42,7 +42,8 @@ def create_dataset(sentinel2tile_list, bathy_xyz, csv_path):
     bad4 = 0  # Clouds
     dataframe = pd.DataFrame([], columns=['z', 'x', 'y', 'epsg', 'max_energy'])
 
-    for tile in sentinel2tile_list:
+    for i in range(len(sentinel2tile_list)):
+        tile = sentinel2tile_list[i]
         print(f'Tile : {tile.id}')
         for safe in tile.safes:
             nb1 = 0
