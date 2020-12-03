@@ -208,37 +208,45 @@ def get_bathy_xyz(sentinel2tile_list):
     nb_tot = 0
     for label in labels:
         bathy_label_points = bathy_points[bathy_points['depth label'] == label]
-        n = 0
-        nb = 0
-        t = time.time()
-        while nb < cfg.nb_max_pt_per_tile and n < cfg.line_max_read:
-            n += 1
-            n_tot += 1
-            chosen_idx = np.random.choice(len(bathy_label_points))
-            random_point = bathy_label_points.iloc[chosen_idx]
-            if cfg.depth_lim_min <= random_point['depth(m - down positive - LAT)'] <= cfg.depth_lim_max:
-                if not len(sentinel2tile_list) == 0:
-                    for i in range(nb_tiles):
-                        tile = sentinel2tile_list[i]
-                        # proj to the good coordinate system & round to the tenth to fit on the sentinel 2 max precision
-                        x_point, y_point = proj[i](random_point['long(DD)'], random_point['lat(DD)'])
-                        x_point = int(round(x_point, -1))
-                        y_point = int(round(y_point, -1))
-                        # get the indices of the points to close to the actual point
-                        ind = np.where(np.abs(np.array(x[i], copy=False) - x_point) < precision)
-                        ind = np.where(np.abs(np.array(y[i], copy=False)[ind] - y_point) < precision)
-                        # keep the point only if it is not to close to others
-                        if len(ind[0]) == 0:
-                            if isin_tile(x_point, y_point, tile.corner['x'], tile.corner['y']):
-                                nb += 1
-                                nb_tot += 1
-                                x[i] = np.append(x[i], [x_point])
-                                y[i] = np.append(y[i], [y_point])
-                                z[i] = np.append(z[i], random_point['depth(m - down positive - LAT)'])
-            if n % 1000 == 0:
-                print(n)
-        print('label :', label, nb, '/', n, time.time() - t)
+        if len(bathy_label_points) > 0:
+            n = 0
+            nb = 0
+            t = time.time()
+            while nb < cfg.nb_max_pt_per_tile and n < cfg.line_max_read:
+                n += 1
+                n_tot += 1
+                chosen_idx = np.random.choice(len(bathy_label_points))
+                random_point = bathy_label_points.iloc[chosen_idx]
+                if cfg.depth_lim_min <= random_point['depth(m - down positive - LAT)'] <= cfg.depth_lim_max:
 
+                    if not len(sentinel2tile_list) == 0:
+                        for i in range(nb_tiles):
+                            tile = sentinel2tile_list[i]
+                            if tile.epsgs[0] != 'EPSG:32628':
+                                # proj to the good coordinate system & round to the tenth to fit on the sentinel 2 max precision
+                                x_point, y_point = proj[i](random_point['long(DD)'], random_point['lat(DD)'])
+                            else:
+                                # bathy and s2 are already on the same coordinate system
+                                x_point, y_point = random_point['long(DD)'], random_point['lat(DD)']
+                            x_point = int(round(x_point, -1))
+                            y_point = int(round(y_point, -1))
+                            # get the indices of the points to close to the actual point
+                            ind = np.where(np.abs(np.array(x[i], copy=False) - x_point) < precision)
+                            ind = np.where(np.abs(np.array(y[i], copy=False)[ind] - y_point) < precision)
+                            # keep the point only if it is not to close to others
+
+                            if len(ind[0]) == 0:
+                                if isin_tile(x_point, y_point, tile.corner['x'], tile.corner['y']):
+                                    nb += 1
+                                    nb_tot += 1
+                                    x[i] = np.append(x[i], [x_point])
+                                    y[i] = np.append(y[i], [y_point])
+                                    z[i] = np.append(z[i], random_point['depth(m - down positive - LAT)'])
+                if n % 1000 == 0:
+                    print(n)
+            print('label :', label, nb, '/', n, time.time() - t)
+        else:
+            print(f'len(bathy_label_points) at label:{label} == 0')
     print('nb of lines read/selected :', n_tot, '/', nb_tot)
 
     return x, y, z

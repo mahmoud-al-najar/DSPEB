@@ -54,7 +54,7 @@ class ExtractsGenerator(keras.utils.Sequence):
             else:
                 burst = np.load(ID)
 
-            if cfg.input_shape.shape[-1] == 2:
+            if cfg.input_shape[-1] == 2:
                 _temp_burst = np.empty((self.x_shape[0], self.x_shape[1], 2))
                 _temp_burst[:, :, 0] = burst[:, :, 0]
                 _temp_burst[:, :, 1] = burst[:, :, 3]
