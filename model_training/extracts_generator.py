@@ -1,7 +1,8 @@
-import numpy as np
 import keras
-np.random.seed(448)
+import numpy as np
 import model_training.config as cfg
+from data_generation.preprocessing import apply_per_band_min_max_normalization
+np.random.seed(448)
 
 
 class ExtractsGenerator(keras.utils.Sequence):
@@ -59,6 +60,14 @@ class ExtractsGenerator(keras.utils.Sequence):
                 _temp_burst[:, :, 0] = burst[:, :, 0]
                 _temp_burst[:, :, 1] = burst[:, :, 3]
                 burst = _temp_burst
+
+            if cfg.normalize_input:
+                # Normalize
+                burst = apply_per_band_min_max_normalization(burst)
+
+            # Rotate
+            burst = np.rot90(burst, k=np.random.choice(4))
+
             x[i, ] = burst
             y[i] = float(self.labels[ID]) / cfg.depth_normalization
         return x, y
