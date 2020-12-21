@@ -27,6 +27,7 @@ for fn in os.listdir(fn_dir):
                 plt.show()
             if save_fig:
                 plt.savefig(os.path.join(dir_out, f'{fn}.png'))
+            plt.close()
 
         with open(os.path.join(dir_out, f'{fn}.xyz'), 'w') as f:
             writer = csv.writer(f)
