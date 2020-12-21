@@ -1,7 +1,8 @@
 import os
 import json
 import numpy as np
-import model_training.config as cfg
+import model_training.config as train_cfg
+import datagen_config as datagen_cfg
 
 from utilities.preprocessing import apply_per_band_min_max_normalization
 
@@ -19,23 +20,50 @@ def rgb_subtile(subtile):
 def make_training_log_file():
     # TODO: add dataset size etc, maybe dataset creation params?
     data = {
-        'seed': cfg.seed,
-        'input_shape': cfg.input_shape,
-        'output_nodes': cfg.output_nodes,
-        'dataset_size': cfg.dataset_size,
-        'batch_size': cfg.batch_size,
-        'epochs': cfg.epochs,
-        'loss_function': cfg.loss_function,
-        'lr': cfg.lr,
-        'epsilon': cfg.epsilon,
-        'beta1': cfg.beta1,
-        'beta2': cfg.beta2,
-        'depth_normalization': cfg.depth_normalization,
-        'min_energy': cfg.min_energy,
-        'max_energy': cfg.max_energy,
-        'max_depth': cfg.max_depth
+        'seed': train_cfg.seed,
+        'input_shape': train_cfg.input_shape,
+        'output_nodes': train_cfg.output_nodes,
+        'dataset_size': train_cfg.dataset_size,
+        'batch_size': train_cfg.batch_size,
+        'epochs': train_cfg.epochs,
+        'loss_function': train_cfg.loss_function,
+        'lr': train_cfg.lr,
+        'epsilon': train_cfg.epsilon,
+        'beta1': train_cfg.beta1,
+        'beta2': train_cfg.beta2,
+        'depth_normalization': train_cfg.depth_normalization,
+        'min_energy': train_cfg.min_energy,
+        'max_energy': train_cfg.max_energy,
+        'max_depth': train_cfg.max_depth
     }
-    with open(os.path.join(cfg.output_dir, 'train_params.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(train_cfg.output_dir, 'train_params.json'), 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def make_datagen_log_file():
+    data = {
+        'in_path_bathy': datagen_cfg.in_path_bathy,
+        'in_path_s2': datagen_cfg.in_path_s2,
+        'in_path_tidal': datagen_cfg.in_path_tidal,
+        'out_path_dir': datagen_cfg.out_path_dir,
+        'out_path_tmpdir': datagen_cfg.out_path_tmpdir,
+        'region': datagen_cfg.region,
+        'tiles': datagen_cfg.tiles,
+        'w_sub_tile': datagen_cfg.w_sub_tile,
+        'w_sentinel': datagen_cfg.w_sentinel,
+        'min_energy': datagen_cfg.min_energy,
+        'max_energy': datagen_cfg.max_energy,
+        'max_cc': datagen_cfg.max_cc,
+        'nb_max_date': datagen_cfg.nb_max_date,
+        'depth_lim_min': datagen_cfg.depth_lim_min,
+        'depth_lim_max': datagen_cfg.depth_lim_max,
+        'nb_max_pt_per_tile': datagen_cfg.nb_max_pt_per_tile,
+        'line_max_read': datagen_cfg.line_max_read,
+        'out_path_csv': datagen_cfg.out_path_csv,
+        'out_path_dataset': datagen_cfg.out_path_dataset,
+        'preprocessing_funcs': datagen_cfg.preprocessing_funcs
+    }
+    with open(os.path.join(datagen_cfg.out_path_csv, 'datagen_params.json'), 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
@@ -88,10 +116,10 @@ def isin_tile(x_point, y_point, x_corner, y_corner):
     :return: boolean, true if in, else false
     """
 
-    cx = int((x_point - x_corner) - cfg.w_sub_tile * 5)
-    cy = int((y_corner - y_point) - cfg.w_sub_tile * 5)
+    cx = int((x_point - x_corner) - train_cfg.w_sub_tile * 5)
+    cy = int((y_corner - y_point) - train_cfg.w_sub_tile * 5)
 
     return (cx > 0) and \
-          (cx < (cfg.w_sentinel - cfg.w_sub_tile * 10)) and \
-          (cy > 0) and \
-          (cy < (cfg.w_sentinel - cfg.w_sub_tile * 10))
+           (cx < (train_cfg.w_sentinel - train_cfg.w_sub_tile * 10)) and \
+           (cy > 0) and \
+           (cy < (train_cfg.w_sentinel - train_cfg.w_sub_tile * 10))

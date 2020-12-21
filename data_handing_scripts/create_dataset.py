@@ -86,12 +86,14 @@ for i in range(len(sentinel2tile_list)):
                                 bad4 += 1
                             else:
 
-                                B_fft, flag, max_energy = apply_fft(Bands,
+                                if apply_fft in cfg.preprocessing_funcs:
+                                    B_fft, flag, max_energy = apply_fft(Bands,
                                                                     energy_min_thresh=cfg.min_energy,
                                                                     energy_max_thresh=cfg.max_energy)
-
-                                B_fnxc = apply_normxcorr2(B_fft)
-                                B_fnxc = apply_per_band_min_max_normalization(B_fnxc)
+                                if apply_normxcorr2 in cfg.preprocessing_funcs:
+                                    B_fnxc = apply_normxcorr2(B_fft)
+                                if apply_per_band_min_max_normalization in cfg.preprocessing_funcs:
+                                    B_fnxc = apply_per_band_min_max_normalization(B_fnxc)
 
                                 good += 1
                                 num = '{0:05}'.format(good)
