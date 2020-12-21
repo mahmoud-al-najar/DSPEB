@@ -11,6 +11,7 @@ from data_generation.utils import isin_tile
 import pyproj
 import pandas as pd
 import warnings
+import gdal
 
 
 def get_cloud_coverage(path):
@@ -77,6 +78,17 @@ def get_tidal_elevation_for_image(safe):
         else:
             tidal = tid['prediction_at_ERA5_point'].values[0]
             return tidal
+
+
+def get_geo_transform_for_image(s2_path, tile_id, safe_id):
+    safe_path = os.path.join(s2_path, tile_id, safe_id)
+    date = safe_id[11:19]
+    t_time = safe_id[20:26]
+    a = os.listdir(os.path.join(safe_path, 'GRANULE'))
+    path = os.path.join(safe_path, 'GRANULE', a[0], 'IMG_DATA', f'T{tile_id}_{date}T{t_time}_')
+    print(path)
+    ds = gdal.Open(path + 'B04.jp2')
+    return ds.GetGeoTransform()
 
 
 def parse_sentinel2_imagesafe_metadata(root_path, safe_id):
