@@ -1,16 +1,9 @@
+import os
+import json
 import numpy as np
 import model_training.config as cfg
-import json
-import os
-import netCDF4 as nc
 
-
-def __flip_bathymetry_y_axis(arr):
-    unique_values = np.unique(arr)
-    flipped = np.empty(np.array(arr).shape)
-    for i in range(len(arr)):
-        flipped[i] = np.flipud(unique_values)[np.where(unique_values == arr[i])]
-    return flipped
+from utilities.preprocessing import apply_per_band_min_max_normalization
 
 
 def rgb_subtile(subtile):
@@ -50,54 +43,55 @@ def get_nan_mean(preds):
     return np.nanmean(np.dstack(preds), axis=2)
 
 
-def read_nc_file(path_to_nc, projection_in=None, projection_out=None):
-    ncd = nc.Dataset(path_to_nc)
-    print(ncd)
+def get_blue_ratio(sub_tile, point_name='P-Name'):
+    nx, ny, nc = sub_tile.shape
+    count_all_values = nx * ny
 
-    n_x = len(ncd.variables['x'])
-    n_y = len(ncd.variables['y'])
-    n_k = len(ncd.variables['kKeep'])
-    n_t = len(ncd.variables['time'])
+    raw_rgb_subtile = np.empty((nx, ny, 3))
+    raw_rgb_subtile[:, :, 0] = sub_tile[:, :, 3]
+    raw_rgb_subtile[:, :, 1] = sub_tile[:, :, 2]
+    raw_rgb_subtile[:, :, 2] = sub_tile[:, :, 0]
 
-    out_x = []
-    out_y = []
-    out_z = []
-    n_err = 0
-    n_good = 0
-    n_all = 0
-    n_dash = 0
+    normalized_rgb_subtile = np.empty((nx, ny, 3))
+    normalized_rgb_subtile[:, :, 0] = raw_rgb_subtile[:, :, 0]
+    normalized_rgb_subtile[:, :, 1] = raw_rgb_subtile[:, :, 1]
+    normalized_rgb_subtile[:, :, 2] = raw_rgb_subtile[:, :, 2]
 
-    for i_t in range(n_t):
-        for i_x in range(n_x):
-            for i_y in range(n_y):
-                ncd_time = ncd.variables['time'][i_t]
-                ncd_x = ncd.variables['x'][i_x]
-                ncd_y = ncd.variables['y'][i_y]
-                z = None
-                for i_k in range(n_k):
-                    ncd_z = ncd['depth'][i_y, i_x, i_k, i_t]
-                    n_all += 1
+    normalized_rgb_subtile = apply_per_band_min_max_normalization(normalized_rgb_subtile)
+    median = np.nanmedian(normalized_rgb_subtile)
 
-                    if ncd_z != '--':
-                        if z is None:
-                            z = ncd_z
-                            n_good += 1
-                            out_x.append(ncd_x)
-                            out_y.append(ncd_y)
-                            out_z.append(z)
-                        else:
-                            new_z = (z + ncd_z) / 2
-                            z = new_z
-                            n_err += 1
-                    else:
-                        n_dash += 1
-                if n_all % 5000 == 0:
-                    print(f'all: {n_all}, keep: {n_good}, errs: {n_err}, dash: {n_dash}')
-    fn = path_to_nc.split("/")[-1]
-    print(f'Filename: {fn}')
-    print(f'    Total: {n_all}, 1k: {n_good}, nk: {n_err}, --: {n_dash}')
-    print(f'    len(x): {len(out_x)}, len(y): {len(out_y)}, len(z): {len(out_z)}')
+    n_blue_pixels = 0
+    if median < 0.15:
+        for x in range(nx):
+            for y in range(ny):
+                r, g, b = normalized_rgb_subtile[x, y, :]
+                if r < 0.2 and g < 0.2 and b < 0.2:
+                    n_blue_pixels += 1
+        return n_blue_pixels / count_all_values
+    else:
+        for x in range(nx):
+            for y in range(ny):
+                r, g, b = raw_rgb_subtile[x, y, :]
+                if (r < 0.2 < b and g < b) or (g < 0.2 < b and r < b):
+                    n_blue_pixels += 1
+        return n_blue_pixels / count_all_values
 
-    print(f'    Creating CSV file for {fn}...')
-    out_y = __flip_bathymetry_y_axis(out_y)
-    return out_x, out_y, out_z
+
+def isin_tile(x_point, y_point, x_corner, y_corner):
+    """
+    This function check if the point is in the sentinel tile
+    according to its top left corner (lm*lm)
+    :param x_point: x coordinate of the given point
+    :param y_point: y coordinate of the given point
+    :param x_corner: x coordinate of the top left corner of the given tile
+    :param y_corner: y coordinate of the top left corner of the given tile
+    :return: boolean, true if in, else false
+    """
+
+    cx = int((x_point - x_corner) - cfg.w_sub_tile * 5)
+    cy = int((y_corner - y_point) - cfg.w_sub_tile * 5)
+
+    return (cx > 0) and \
+          (cx < (cfg.w_sentinel - cfg.w_sub_tile * 10)) and \
+          (cy > 0) and \
+          (cy < (cfg.w_sentinel - cfg.w_sub_tile * 10))

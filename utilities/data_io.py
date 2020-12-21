@@ -1,17 +1,19 @@
-import xml.etree.ElementTree as et
-from datetime import datetime, timedelta
-import xarray as xr
-import numpy as np
 import os
 import time
-import tarfile
-import data_generation.config as cfg
-from data_generation.sentinel2wrappers import Sentinel2Tile, Sentinel2Safe
-from data_generation.utils import isin_tile
-import pyproj
-import pandas as pd
-import warnings
 import gdal
+import pyproj
+import tarfile
+import warnings
+import numpy as np
+import xarray as xr
+import pandas as pd
+import netCDF4 as nc
+import xml.etree.ElementTree as et
+import datagen_config as cfg
+
+from datetime import datetime, timedelta
+from data_io.utils import isin_tile
+from utilities.sentinel2wrappers import Sentinel2Tile, Sentinel2Safe
 
 
 def get_cloud_coverage(path):
@@ -262,3 +264,64 @@ def get_bathy_xyz(sentinel2tile_list):
     print('nb of lines read/selected :', n_tot, '/', nb_tot)
 
     return x, y, z
+
+
+def __flip_bathymetry_y_axis(arr):
+    unique_values = np.unique(arr)
+    flipped = np.empty(np.array(arr).shape)
+    for i in range(len(arr)):
+        flipped[i] = np.flipud(unique_values)[np.where(unique_values == arr[i])]
+    return flipped
+
+
+def read_nc_file(path_to_nc, projection_in=None, projection_out=None):
+    ncd = nc.Dataset(path_to_nc)
+    print(ncd)
+
+    n_x = len(ncd.variables['x'])
+    n_y = len(ncd.variables['y'])
+    n_k = len(ncd.variables['kKeep'])
+    n_t = len(ncd.variables['time'])
+
+    out_x = []
+    out_y = []
+    out_z = []
+    n_err = 0
+    n_good = 0
+    n_all = 0
+    n_dash = 0
+
+    for i_t in range(n_t):
+        for i_x in range(n_x):
+            for i_y in range(n_y):
+                ncd_time = ncd.variables['time'][i_t]
+                ncd_x = ncd.variables['x'][i_x]
+                ncd_y = ncd.variables['y'][i_y]
+                z = None
+                for i_k in range(n_k):
+                    ncd_z = ncd['depth'][i_y, i_x, i_k, i_t]
+                    n_all += 1
+
+                    if ncd_z != '--':
+                        if z is None:
+                            z = ncd_z
+                            n_good += 1
+                            out_x.append(ncd_x)
+                            out_y.append(ncd_y)
+                            out_z.append(z)
+                        else:
+                            new_z = (z + ncd_z) / 2
+                            z = new_z
+                            n_err += 1
+                    else:
+                        n_dash += 1
+                if n_all % 5000 == 0:
+                    print(f'all: {n_all}, keep: {n_good}, errs: {n_err}, dash: {n_dash}')
+    fn = path_to_nc.split("/")[-1]
+    print(f'Filename: {fn}')
+    print(f'    Total: {n_all}, 1k: {n_good}, nk: {n_err}, --: {n_dash}')
+    print(f'    len(x): {len(out_x)}, len(y): {len(out_y)}, len(z): {len(out_z)}')
+
+    print(f'    Creating CSV file for {fn}...')
+    out_y = __flip_bathymetry_y_axis(out_y)
+    return out_x, out_y, out_z

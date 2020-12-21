@@ -1,7 +1,7 @@
 import keras
 import numpy as np
 import model_training.config as cfg
-from data_generation.preprocessing import apply_per_band_min_max_normalization
+from utilities.preprocessing import apply_per_band_min_max_normalization
 np.random.seed(448)
 
 

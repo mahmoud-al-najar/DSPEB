@@ -2,7 +2,8 @@ import os
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
-from utilities.common import read_nc_file
+
+from utilities.data_io import read_nc_file
 
 
 fn_dir = '/media/mn/WD4TB/PEPS/data/pbm_results/22NCL'

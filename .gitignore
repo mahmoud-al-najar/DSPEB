@@ -5,7 +5,6 @@ __pycache__/
 
 # Custom
 outs/
-data_generation/config.py
 temporary/
 
 # C extensions

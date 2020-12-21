@@ -1,5 +1,6 @@
-from scipy.signal import detrend, fftconvolve
 import numpy as np
+
+from scipy.signal import detrend, fftconvolve
 
 
 def apply_normxcorr2(sub_tile):
