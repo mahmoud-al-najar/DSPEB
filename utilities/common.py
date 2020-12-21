@@ -4,6 +4,14 @@ import json
 import os
 
 
+def flip_array(arr):
+    unique_values = np.unique(arr)
+    flipped = np.empty(np.array(arr).shape)
+    for i in range(len(arr)):
+        flipped[i] = np.flipud(unique_values)[np.where(unique_values == arr[i])]
+    return flipped
+
+
 def rgb_subtile(subtile):
     subtile_w0 = subtile.shape[0]
     subtile_w1 = subtile.shape[1]
