@@ -6,6 +6,7 @@ __pycache__/
 # Custom
 outs/
 temporary/
+datagen_config.py
 
 # C extensions
 *.so
