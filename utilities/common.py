@@ -5,8 +5,9 @@ import os
 
 
 def rgb_subtile(subtile):
-    subtile_w = subtile.shape[1]
-    rgb_image = np.empty((subtile_w, subtile_w, 3))
+    subtile_w0 = subtile.shape[0]
+    subtile_w1 = subtile.shape[1]
+    rgb_image = np.empty((subtile_w0, subtile_w1, 3))
     rgb_image[:, :, 0] = subtile[:, :, 3]
     rgb_image[:, :, 1] = subtile[:, :, 2]
     rgb_image[:, :, 2] = subtile[:, :, 0]
@@ -34,3 +35,7 @@ def make_training_log_file():
     }
     with open(os.path.join(cfg.output_dir, 'train_params.json'), 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def get_nan_mean(preds):
+    return np.nanmean(np.dstack(preds), axis=2)

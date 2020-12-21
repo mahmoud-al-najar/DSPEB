@@ -1,9 +1,11 @@
 import netCDF4 as nc
 import os
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
 
 
-fn_dir = '/home/mn/Downloads/forMahmoud/'
+fn_dir = 'path/to/results/directory'
 out_headers = ['lng', 'lat', 'z']
 out_x = []
 out_y = []
@@ -34,6 +36,8 @@ for fn in os.listdir(fn_dir):
 
                         ncd_kKeep = ncd.variables['kKeep'][i_k]
                         ncd_z = ncd['depth'][i_y, i_x, i_k, i_t]
+
+                        # print(ncd_x, ncd_y, ncd_z)
                         n_all += 1
 
                         if ncd_z != '--':
@@ -49,7 +53,7 @@ for fn in os.listdir(fn_dir):
                                 n_err += 1
                         else:
                             n_dash += 1
-                    if n_all % 1000 == 0:
+                    if n_all % 5000 == 0:
                         print(f'all: {n_all}, keep: {n_good}, errs: {n_err}, dash: {n_dash}')
 
         print(f'Tile: {fn}')
@@ -57,6 +61,12 @@ for fn in os.listdir(fn_dir):
         print(f'    len(x): {len(out_x)}, len(y): {len(out_y)}, len(z): {len(out_z)}')
 
         print(f'    Creating CSV file for {fn}...')
+        # out_y = np.array(out_y)[::-1]
+        plt.scatter(out_x, out_y, c=out_z, cmap='ocean_r', vmax=50)
+        # plt.gca().invert_yaxis()
+        plt.colorbar()
+        plt.show()
+        # exit()
         with open(f'out_{fn}.xyz', 'w') as f:
             writer = csv.writer(f)
             writer.writerow(out_headers)
@@ -66,5 +76,6 @@ for fn in os.listdir(fn_dir):
         out_x = []
         out_y = []
         out_z = []
+        exit()
 
 print('Finished')
