@@ -23,7 +23,7 @@ nb_max_date = 7
 depth_lim_min = 0
 depth_lim_max = 120
 nb_max_pt_per_tile = 1500
-line_max_read = 10_000
+line_max_read = 50_000
 
 verbose = 0
 
