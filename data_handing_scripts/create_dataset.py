@@ -5,9 +5,10 @@ import shutil
 import numpy as np
 import pandas as pd
 import datagen_config as cfg
-from utilities.common import get_blue_ratio
+
 from utilities.data_io import make_tarfile
-from utilities.data_io import parse_sentinel2_tiles_metadata, get_bathy_xyz
+from utilities.common import get_blue_ratio, make_datagen_log_file
+from utilities.data_io import parse_sentinel2_tiles_metadata, datagen_get_bathy_xyz
 from utilities.preprocessing import apply_fft, apply_per_band_min_max_normalization, apply_normxcorr2
 
 # get list of Sentinel-2 Tile objects
@@ -16,7 +17,7 @@ print(sentinel2tile_list)
 print(f'len(tiles) = {len(sentinel2tile_list)}')
 
 # get bathymetry xyz
-bathy_xyz = get_bathy_xyz(sentinel2tile_list)
+bathy_xyz = datagen_get_bathy_xyz(sentinel2tile_list)
 x, y, z = bathy_xyz
 print(len(x), len(y), len(z))
 print(x)
@@ -127,6 +128,7 @@ dataframe.to_csv(os.path.join(cfg.out_path_csv, f'{cfg.region}_FULL.csv'))
 tmp_tarname = os.path.join(cfg.out_path_tmpdir, f'{cfg.region}_{str(len(dataframe.index))}_FULL.tar.gz')
 make_tarfile(tmp_tarname, tmp_dirname)
 shutil.copy(tmp_tarname, cfg.out_path_dataset)
+make_datagen_log_file()
 
 print('###################################################################################################')
 print(f'{good + bad1 + bad2 + bad3 + bad4} Input samples')

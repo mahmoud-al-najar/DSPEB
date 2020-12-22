@@ -12,8 +12,8 @@ import xml.etree.ElementTree as et
 import datagen_config as cfg
 
 from datetime import datetime, timedelta
-from data_io.utils import isin_tile
-from utilities.sentinel2wrappers import Sentinel2Tile, Sentinel2Safe
+from utilities.common import isin_tile
+# from utilities.wrappers import Sentinel2Tile, Sentinel2Safe
 
 
 def get_cloud_coverage(path):
@@ -82,19 +82,20 @@ def get_tidal_elevation_for_image(safe):
             return tidal
 
 
-def get_geo_transform_for_image(s2_path, tile_id, safe_id):
-    safe_path = os.path.join(s2_path, tile_id, safe_id)
-    date = safe_id[11:19]
-    t_time = safe_id[20:26]
-    a = os.listdir(os.path.join(safe_path, 'GRANULE'))
-    path = os.path.join(safe_path, 'GRANULE', a[0], 'IMG_DATA', f'T{tile_id}_{date}T{t_time}_')
-    print(path)
-    ds = gdal.Open(path + 'B04.jp2')
-    return ds.GetGeoTransform()
+# def get_geo_transform_for_image(s2_path, tile_id, safe_id):
+#     safe_path = os.path.join(s2_path, tile_id, safe_id)
+#     date = safe_id[11:19]
+#     t_time = safe_id[20:26]
+#     a = os.listdir(os.path.join(safe_path, 'GRANULE'))
+#     path = os.path.join(safe_path, 'GRANULE', a[0], 'IMG_DATA', f'T{tile_id}_{date}T{t_time}_')
+#     ds = gdal.Open(path + 'B04.jp2')
+#     return ds.GetGeoTransform()
 
 
-def parse_sentinel2_imagesafe_metadata(root_path, safe_id):
-    path_s = os.path.join(root_path, safe_id)
+def parse_sentinel2_imagesafe_metadata(safe_path):
+    from utilities.wrappers import Sentinel2Safe  # TODO: UNCOMMENT MAIN IMPORT AND COME BACK TO THIS
+    safe_id = safe_path.split('/')[-1]
+    print(f'parse_sentinel2_imagesafe_metadata() safe_id: {safe_id}')
     date = safe_id[11:19]
     t_time = safe_id[20:26]
     tidal = get_tidal_elevation_for_image(safe_id)
@@ -103,21 +104,22 @@ def parse_sentinel2_imagesafe_metadata(root_path, safe_id):
         temp_safe.tidal_elevation = tidal
         temp_safe.date = date
         temp_safe.time = t_time
-        temp_safe.s2_path = path_s
-        x, y, epsg = get_top_left_corner_coordinates_for_image(path_s)
+        temp_safe.s2_path = safe_path
+        x, y, epsg = get_top_left_corner_coordinates_for_image(safe_path)
         temp_safe.corners = (x, y)
         temp_safe.epsg = epsg
         return temp_safe
     else:
+        warnings.warn(f'No tidal elevation data for safe: {safe_id}')
         return None
 
 
-# TODO: refactor sentinel2wrappers.py. pass path to constructors then parse all metadata from there
 def parse_sentinel2_tiles_metadata():
     """
             This function returns the info of the nb_max_date tiles with the smallest cloud coverage
             :return: corners, paths, dates, epsgs: infos of the selected tiles
             """
+    from utilities.wrappers import Sentinel2Tile  # TODO: UNCOMMENT MAIN IMPORT AND COME BACK TO THIS
     sentinel2_tiles = []
     i = -1
     for tile in cfg.tiles:
@@ -140,7 +142,7 @@ def parse_sentinel2_tiles_metadata():
             path_s = os.path.join(path_t, safe)
             cloud_coverage = "{0:0.2f}".format(get_cloud_coverage(path_s))
             if float(cloud_coverage) < cfg.max_cc and n < cfg.nb_max_date:
-                temp_safe = parse_sentinel2_imagesafe_metadata(root_path=path_t, safe_id=safe)
+                temp_safe = parse_sentinel2_imagesafe_metadata(path_s)
                 if temp_safe:
                     temp_tile.safes.append(temp_safe)
 
@@ -174,7 +176,7 @@ def parse_sentinel2_tiles_metadata():
     return sentinel2_tiles
 
 
-def get_bathy_xyz(sentinel2tile_list):
+def datagen_get_bathy_xyz(sentinel2tile_list):
     """
     This function returns the useful bathy points according to 2 criteria :
     distance to each others (not to much redundancy) & not to close to tile borders & depth limited (+ & -)
@@ -325,3 +327,16 @@ def read_nc_file(path_to_nc, projection_in=None, projection_out=None):
     print(f'    Creating CSV file for {fn}...')
     out_y = __flip_bathymetry_y_axis(out_y)
     return out_x, out_y, out_z
+
+
+def read_fxyz_file(path_to_xyz, projection_in=None, projection_out=None):
+    df = pd.read_csv(path_to_xyz, header=0)
+    lng = np.array(df.lng)
+    lat = np.array(df.lat)
+    z = np.array(df.z)
+
+    if projection_in and projection_out:
+        proj = pyproj.Proj(proj='utm', init=projection_out, ellps=projection_in)
+        lng, lat = proj(lng, lat)
+
+    return lng, lat, z

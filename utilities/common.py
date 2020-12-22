@@ -7,7 +7,7 @@ import datagen_config as datagen_cfg
 from utilities.preprocessing import apply_per_band_min_max_normalization
 
 
-def rgb_subtile(subtile):
+def get_rgb_subtile(subtile):
     subtile_w0 = subtile.shape[0]
     subtile_w1 = subtile.shape[1]
     rgb_image = np.empty((subtile_w0, subtile_w1, 3))
