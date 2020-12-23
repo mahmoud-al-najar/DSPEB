@@ -17,6 +17,7 @@ for fn in os.listdir(fn_dir):
         lng, lat, z = read_nc_file(fn_path)
 
         if show or save_fig:
+            # TODO: use visualization util func
             plt.figure(figsize=(8, 5))
             plt.rcParams.update({'font.size': 12})
             np.set_printoptions(suppress=True)
