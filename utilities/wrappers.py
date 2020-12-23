@@ -32,18 +32,19 @@ class Sentinel2Safe:
                 exit()
             date = self.id[11:19]
             t_time = self.id[20:26]
+            self.date = date
+            self.time = t_time
+            self.s2_path = safe_path
+            x, y, epsg = get_top_left_corner_coordinates_for_image(safe_path)
+            self.corners = (x, y)
+            self.epsg = epsg
             tidal = get_tidal_elevation_for_image(self.id)
             if tidal:
                 self.tidal_elevation = tidal
-                self.date = date
-                self.time = t_time
-                self.s2_path = safe_path
-                x, y, epsg = get_top_left_corner_coordinates_for_image(safe_path)
-                self.corners = (x, y)
-                self.epsg = epsg
             else:
                 warnings.warn(f'No tidal elevation data for safe: {self.id}')
-                exit()
+                # exit()
+                self.tidal_elevation = 0
         else:
             self.id = None
             self.tile_id = None

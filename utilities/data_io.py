@@ -99,19 +99,19 @@ def parse_sentinel2_imagesafe_metadata(safe_path):
     date = safe_id[11:19]
     t_time = safe_id[20:26]
     tidal = get_tidal_elevation_for_image(safe_id)
+    temp_safe = Sentinel2Safe()
+    temp_safe.date = date
+    temp_safe.time = t_time
+    temp_safe.s2_path = safe_path
+    x, y, epsg = get_top_left_corner_coordinates_for_image(safe_path)
+    temp_safe.corners = (x, y)
+    temp_safe.epsg = epsg
     if tidal:
-        temp_safe = Sentinel2Safe()
         temp_safe.tidal_elevation = tidal
-        temp_safe.date = date
-        temp_safe.time = t_time
-        temp_safe.s2_path = safe_path
-        x, y, epsg = get_top_left_corner_coordinates_for_image(safe_path)
-        temp_safe.corners = (x, y)
-        temp_safe.epsg = epsg
-        return temp_safe
     else:
         warnings.warn(f'No tidal elevation data for safe: {safe_id}')
-        return None
+        temp_safe.tidal_elevation = 0
+    return temp_safe
 
 
 def parse_sentinel2_tiles_metadata():
@@ -203,7 +203,7 @@ def datagen_get_bathy_xyz(sentinel2tile_list):
             exit()
         else:
             warnings.warn(
-                f'THIS SHOULD NEVER HAPPEN ====================================== didn\nt find tile {tile.id}\'s epsg?')
+                f'THIS SHOULD NEVER HAPPEN ====================================== didn\'t find tile {tile.id}\'s epsg?')
             exit()
 
     bathy_points = pd.DataFrame()
