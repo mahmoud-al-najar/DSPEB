@@ -116,10 +116,10 @@ def isin_tile(x_point, y_point, x_corner, y_corner):
     :return: boolean, true if in, else false
     """
 
-    cx = int((x_point - x_corner) - train_cfg.w_sub_tile * 5)
-    cy = int((y_corner - y_point) - train_cfg.w_sub_tile * 5)
+    cx = int((x_point - x_corner) - datagen_cfg.w_sub_tile * 5)
+    cy = int((y_corner - y_point) - datagen_cfg.w_sub_tile * 5)
 
     return (cx > 0) and \
-           (cx < (train_cfg.w_sentinel - train_cfg.w_sub_tile * 10)) and \
+           (cx < (datagen_cfg.w_sentinel - datagen_cfg.w_sub_tile * 10)) and \
            (cy > 0) and \
-           (cy < (train_cfg.w_sentinel - train_cfg.w_sub_tile * 10))
+           (cy < (datagen_cfg.w_sentinel - datagen_cfg.w_sub_tile * 10))
