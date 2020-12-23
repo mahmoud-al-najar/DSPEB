@@ -8,8 +8,8 @@ random.seed(cfg.seed)
 np.random.seed(cfg.seed)
 
 
-def get_ids_list_and_labels_dict():
-    with open(cfg.input_csv_path, 'r') as f:
+def get_ids_list_and_labels_dict(csv_path):
+    with open(csv_path, 'r') as f:
         reader = csv.reader(f)
         dataset = list(reader)
     random.shuffle(dataset)

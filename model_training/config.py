@@ -1,6 +1,13 @@
-region = 'saint_louis'
 output_dir = 'outs'
-input_csv_path = f'{region}.csv'
+
+region_train = 'mixed_training'
+path_csv_train = f'{region_train}.csv'
+
+region_validation = 'capbreton_validation'
+path_csv_validation = f'{region_validation}.csv'
+
+region_test = 'capbreton_test'
+path_csv_test = f'{region_test}.csv'
 
 seed = 1
 input_shape = (40, 40, 4)

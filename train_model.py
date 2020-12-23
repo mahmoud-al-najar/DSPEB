@@ -37,25 +37,26 @@ def lr_schedule(epoch):
 random.seed(cfg.seed)
 np.random.seed(cfg.seed)
 
-list_ids, dict_labels = get_ids_list_and_labels_dict()
-partition = get_data_partitions(list_ids)
+train_ids, train_labels = get_ids_list_and_labels_dict(cfg.path_csv_train)
+val_ids, val_labels = get_ids_list_and_labels_dict(cfg.path_csv_validation)
+test_ids, test_labels = get_ids_list_and_labels_dict(cfg.path_csv_test)
 
 print('Data partitions:')
-print('    Training: ' + str(len(partition['train'])))
-print('    Validation: ' + str(len(partition['validation'])))
-print('    Test: ' + str(len(partition['test'])))
+print('    Training: ' + str(len(train_ids)))
+print('    Validation: ' + str(len(val_ids)))
+print('    Test: ' + str(len(test_ids)))
 
-generator_train = ExtractsGenerator(partition['train'], dict_labels)
-generator_validation = ExtractsGenerator(partition['validation'], dict_labels)
-generator_test = ExtractsGenerator(partition['test'], dict_labels)
+generator_train = ExtractsGenerator(train_ids, train_labels)
+generator_validation = ExtractsGenerator(val_ids, val_labels)
+generator_test = ExtractsGenerator(test_ids, test_labels)
 
-total_items = len(partition['train'])
+total_items = len(train_ids)
 num_batches = int(total_items / cfg.batch_size)
 
 resnet = ResNet(input_shape=cfg.input_shape, output_nodes=cfg.output_nodes, n=6)
 model = resnet.create_model()
 
-print(cfg.region)
+# print(cfg.region)
 # model.summary()
 
 output_dir = model.name + '_' + str(total_items) + '_lr_' + str(cfg.lr) + '__epsilon_' + \
