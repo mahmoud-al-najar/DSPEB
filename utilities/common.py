@@ -1,6 +1,7 @@
 import os
 import json
 import numpy as np
+import pandas as pd
 import model_training.config as train_cfg
 import datagen_config as datagen_cfg
 
@@ -123,3 +124,10 @@ def isin_tile(x_point, y_point, x_corner, y_corner):
            (cx < (datagen_cfg.w_sentinel - datagen_cfg.w_sub_tile * 10)) and \
            (cy > 0) and \
            (cy < (datagen_cfg.w_sentinel - datagen_cfg.w_sub_tile * 10))
+
+
+def dataset_csv_to_bathy_fxyz(path):
+    df = pd.read_csv(path)
+    df.drop(['Unnamed: 0', 'epsg', 'max_energy', 'z_no_tide'], axis=1, inplace=True)
+    df.rename(columns={'x': 'lng', 'y': 'lat'}, inplace=True)
+    df.to_csv(path.replace('.csv', '.fxyz'), index=False)
