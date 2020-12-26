@@ -21,6 +21,9 @@ class Sentinel2Tile:
                f'   EPSG\'S: {self.epsgs}' \
                '}'
 
+    def __eq__(self, other):
+        return self.id == other.id
+
 
 class Sentinel2Safe:
     def __init__(self, safe_path=None, tile_id=None):

@@ -195,6 +195,11 @@ def parse_sentinel2_tiles_metadata_from_datalake():
 
         temp_tile = Sentinel2Tile()
         temp_tile.id = tile_id
+        if temp_tile in sentinel2_tiles:
+            in_tiles = True
+            temp_tile = sentinel2_tiles[sentinel2_tiles.index(temp_tile)]
+        else:
+            in_tiles = False
 
         print(f'--------------TILE: {temp_tile.id}')
 
@@ -230,7 +235,8 @@ def parse_sentinel2_tiles_metadata_from_datalake():
                 else:
                     temp_tile.corner['x'] = temp_safe.corners[0]
                     temp_tile.corner['y'] = temp_safe.corners[1]
-        sentinel2_tiles.append(temp_tile)
+        if not in_tiles:
+            sentinel2_tiles.append(temp_tile)
 
     return sentinel2_tiles
 
