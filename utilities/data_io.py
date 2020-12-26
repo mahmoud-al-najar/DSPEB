@@ -176,6 +176,65 @@ def parse_sentinel2_tiles_metadata():
     return sentinel2_tiles
 
 
+def parse_sentinel2_tiles_metadata_from_datalake():
+    """
+            This function returns the info of the nb_max_date tiles with the smallest cloud coverage
+            :return: corners, paths, dates, epsgs: infos of the selected tiles
+            """
+    from utilities.wrappers import Sentinel2Tile  # TODO: UNCOMMENT MAIN IMPORT AND COME BACK TO THIS
+    sentinel2_tiles = []
+
+    with open(cfg.in_path_safes_list, 'r') as file:
+        safe_ids = file.read().splitlines()
+
+    for safe_id in safe_ids:
+        year = safe_id[11:15]
+        month = safe_id[15:17]
+        day = safe_id[17:19]
+        tile_id = safe_id[39:44]
+
+        temp_tile = Sentinel2Tile()
+        temp_tile.id = tile_id
+
+        print(f'--------------TILE: {temp_tile.id}')
+
+        path_t = os.path.join(cfg.in_path_datalake_s2, temp_tile.id)
+
+        path_s = os.path.join(path_t, year, month, day, safe_id + '.SAFE')
+        cloud_coverage = "{0:0.2f}".format(get_cloud_coverage(path_s))
+        if float(cloud_coverage) < cfg.max_cc:
+            temp_safe = parse_sentinel2_imagesafe_metadata(path_s)
+            if temp_safe:
+                temp_tile.safes.append(temp_safe)
+
+                print(f'safe.corners: {temp_safe.corners}')
+                print(f'safe.s2_path: {temp_safe.s2_path}')
+                print(f'safe.date: {temp_safe.date}')
+                print(f'safe.time: {temp_safe.time}')
+                print(f'safe.epsg: {temp_safe.epsg}')
+                print(f'safe.tidal_elevation: {temp_safe.tidal_elevation}')
+
+                if temp_safe.epsg not in temp_tile.epsgs:
+                    temp_tile.epsgs.append(temp_safe.epsg)
+                    if len(temp_tile.epsgs) > 1:
+                        warnings.warn(f'==================================== Tile {temp_tile.id}: multiple epsg\'s')
+                        exit()
+                if temp_tile.corner['x'] and temp_tile.corner['y']:
+                    if temp_safe.corners[0] != temp_tile.corner['x'] or temp_safe.corners[1] != temp_tile.corner['y']:
+                        id = temp_tile.id
+                        warnings.warn(
+                            f'============================================ Tile {id}: multiple corners')
+                        exit()
+                    else:
+                        pass  # Different snapshots of the same tile should have the exact same corners
+                else:
+                    temp_tile.corner['x'] = temp_safe.corners[0]
+                    temp_tile.corner['y'] = temp_safe.corners[1]
+        sentinel2_tiles.append(temp_tile)
+
+    return sentinel2_tiles
+
+
 def datagen_get_bathy_xyz(sentinel2tile_list):
     """
     This function returns the useful bathy points according to 2 criteria :
