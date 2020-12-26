@@ -8,11 +8,11 @@ import datagen_config as cfg
 
 from utilities.data_io import make_tarfile
 from utilities.common import get_blue_ratio, make_datagen_log_file
-from utilities.data_io import parse_sentinel2_tiles_metadata, datagen_get_bathy_xyz
+from utilities.data_io import parse_sentinel2_tiles_metadata_from_datalake, datagen_get_bathy_xyz
 from utilities.preprocessing import apply_fft, apply_per_band_min_max_normalization, apply_normxcorr2
 
 # get list of Sentinel-2 Tile objects
-sentinel2tile_list = parse_sentinel2_tiles_metadata()
+sentinel2tile_list = parse_sentinel2_tiles_metadata_from_datalake()
 print(sentinel2tile_list)
 print(f'len(tiles) = {len(sentinel2tile_list)}')
 
