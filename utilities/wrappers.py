@@ -73,6 +73,14 @@ class Sentinel2Safe:
         tile[:, :, 1] = np.array(gdal.Open(path + 'B08.jp2').ReadAsArray(cx, cy, w, h)) / 4096
         return tile
 
+    def get_full_rgb_image(self):
+        path = os.path.join(self.s2_path, 'GRANULE')
+        d = self.id[11:26]
+        l1 = os.listdir(path)[0]
+        path = os.path.join(path, l1, 'IMG_DATA', f'{self.tile_id}_{d}_')
+        rgb = np.transpose(gdal.Open(path + 'TCI.jp2').ReadAsArray(), (1, 2, 0))
+        return rgb
+
     def get_image_around_bathy(self, bathy):
         return self.get_subtile_between_coordinates(bathy.north, bathy.south, bathy.east, bathy.west)
 
@@ -81,7 +89,7 @@ class BathymetryXYZ:
     # assuming appropriate coordinate system is already set
     def __init__(self, path=None):
         if path is not None:
-            self.id = path.split('/')[0]
+            self.id = path.split('/')[-1]
 
             df = pd.read_csv(path, header=0)
             self.lng = np.array(df.lng)
