@@ -57,6 +57,23 @@ class Sentinel2Safe:
             self.time = None
             self.epsg = None
             self.tidal_elevation = None
+        self.l = 109_800
+
+    @property
+    def south(self):
+        return np.min(self.corners[1] - self.l)
+
+    @property
+    def north(self):
+        return np.max(self.corners[1])
+
+    @property
+    def west(self):
+        return np.max(self.corners[0])
+
+    @property
+    def east(self):
+        return np.min(self.corners[0] + self.l)
 
     def get_subtile_between_coordinates(self, north, south, east, west):
         cx = (west - self.corners[0]) / 10
