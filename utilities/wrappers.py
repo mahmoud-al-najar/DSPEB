@@ -104,19 +104,24 @@ class Sentinel2Safe:
 
 class BathymetryXYZ:
     # assuming appropriate coordinate system is already set
-    def __init__(self, path=None):
+    def __init__(self, path=None, sample_n=None):
         if path is not None:
             self.id = path.split('/')[-1]
-
             df = pd.read_csv(path, header=0)
+            if sample_n:
+                df = df.sample(sample_n)
             self.lng = np.array(df.lng)
             self.lat = np.array(df.lat)
             self.z = np.array(df.z)
 
             if 'energy' in df.columns:
                 self.energies = np.array(df.energy)
+            else:
+                self.energies = []
             if 'ratio_blue' in df.columns:
                 self.blue_ratios = np.array(df.blue_ratio)
+            else:
+                self.blue_ratios = []
         else:
             self.id = None
             self.lng = []
@@ -148,6 +153,27 @@ class BathymetryXYZ:
     @property
     def height(self):
         return self.north - self.south  # actual dimensions/resolution
+
+    def add_point(self, lng, lat, z):
+        self.lng.append(lng)
+        self.lat.append(lat)
+        self.z.append(z)
+
+    def merge(self, other):
+        self.id = f'merge({self.id}AND{other.id})'
+        self.lng = np.append(self.lng, other.lng)
+        self.lat = np.append(self.lat, other.lat)
+        self.z = np.append(self.z, other.z)
+
+    def sample(self, sample_n):
+        sample_indices = np.random.choice(np.arange(len(self.lng)), sample_n)
+        self.lng = self.lng[sample_indices]
+        self.lat = self.lat[sample_indices]
+        self.z = self.z[sample_indices]
+        # TODO: handle energies, blue_ratios...
+
+    def __len__(self):
+        return len(self.lng)
 
     def write_xyz_file(self, path):
         df = pd.DataFrame()
