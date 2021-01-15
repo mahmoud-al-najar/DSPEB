@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from scipy import ndimage
 from utilities.data_io import get_tidal_elevation_for_image, get_top_left_corner_coordinates_for_image
 
 
@@ -89,6 +90,25 @@ class Sentinel2Safe:
         tile[:, :, 3] = np.array(gdal.Open(path + 'B04.jp2').ReadAsArray(cx, cy, w, h)) / 4096
         tile[:, :, 1] = np.array(gdal.Open(path + 'B08.jp2').ReadAsArray(cx, cy, w, h)) / 4096
         return tile
+
+    def get_subtile_around_center(self, lng, lat, subtile_size_in_meters=400, rotation_angle=0):
+        if rotation_angle == 0:
+            padding = 0
+            padoverten = None
+        else:
+            padding = 90
+            padoverten = int(padding/10)
+        # add padding to account for rotation
+        north = lat + ((subtile_size_in_meters / 2) + padding)
+        south = lat - ((subtile_size_in_meters / 2) + padding)
+        east = lng + ((subtile_size_in_meters / 2) + padding)
+        west = lng - ((subtile_size_in_meters / 2) + padding)
+
+        tile = self.get_subtile_between_coordinates(north, south, east, west)
+        if rotation_angle != 0:
+            tile = ndimage.rotate(tile, rotation_angle, reshape=False)[padoverten:-padoverten,
+                   padoverten:-padoverten, :]
+        return tile, north-padding, south+padding, east-padding, west+padding
 
     def get_full_rgb_image(self):
         path = os.path.join(self.s2_path, 'GRANULE')
