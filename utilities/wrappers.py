@@ -104,11 +104,14 @@ class Sentinel2Safe:
         east = lng + ((subtile_size_in_meters / 2) + padding)
         west = lng - ((subtile_size_in_meters / 2) + padding)
 
-        tile = self.get_subtile_between_coordinates(north, south, east, west)
-        if rotation_angle != 0:
-            tile = ndimage.rotate(tile, rotation_angle, reshape=False)[padoverten:-padoverten,
-                   padoverten:-padoverten, :]
-        return tile, north-padding, south+padding, east-padding, west+padding
+        if north > self.north or south < self.south or west < self.west or east > self.east:
+            return None, north-padding, south+padding, east-padding, west+padding
+        else:
+            tile = self.get_subtile_between_coordinates(north, south, east, west)
+            if rotation_angle != 0:
+                tile = ndimage.rotate(tile, rotation_angle, reshape=False)[padoverten:-padoverten,
+                       padoverten:-padoverten, :]
+            return tile, north-padding, south+padding, east-padding, west+padding
 
     def get_full_rgb_image(self):
         path = os.path.join(self.s2_path, 'GRANULE')

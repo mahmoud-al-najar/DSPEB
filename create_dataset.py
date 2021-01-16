@@ -2,6 +2,7 @@ import os
 import time
 import gdal
 import shutil
+import random
 import numpy as np
 import pandas as pd
 import datagen_config as cfg
@@ -68,17 +69,13 @@ for i in range(len(sentinel2tile_list)):
                         cy > 0:
                     nb1 += 1
 
-                    Bands = np.empty((cfg.w_sub_tile, cfg.w_sub_tile, 4))
-                    Bands[:, :, 0] = np.array(
-                        gdal.Open(path + 'B02.jp2').ReadAsArray(cx, cy, cfg.w_sub_tile, cfg.w_sub_tile)) / 4096
-                    Bands[:, :, 2] = np.array(
-                        gdal.Open(path + 'B03.jp2').ReadAsArray(cx, cy, cfg.w_sub_tile, cfg.w_sub_tile)) / 4096
-                    Bands[:, :, 3] = np.array(
-                        gdal.Open(path + 'B04.jp2').ReadAsArray(cx, cy, cfg.w_sub_tile, cfg.w_sub_tile)) / 4096
-                    Bands[:, :, 1] = np.array(
-                        gdal.Open(path + 'B08.jp2').ReadAsArray(cx, cy, cfg.w_sub_tile, cfg.w_sub_tile)) / 4096
+                    rotations = np.arange(0, 360, 15)
+                    angle = random.choice(rotations)
+                    Bands, north, south, east, west = safe.get_subtile_around_center(x[i][k], y[i][k],
+                                                                                     rotation_angle=angle)
+                    print(north, south, east, west)
 
-                    if np.isnan(np.min(Bands)) or np.isinf(np.min(Bands)):
+                    if Bands is None or np.isnan(np.min(Bands)) or np.isinf(np.min(Bands)):
                         bad2 += 1
                     else:
                         try:
